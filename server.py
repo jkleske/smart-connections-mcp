@@ -102,12 +102,18 @@ class SmartConnectionsDatabase:
 
         # Encode query
         query_vec = self.model.encode(query)
+        query_vec = np.atleast_1d(query_vec.squeeze())  # Ensure 1D array
         query_vec = query_vec / np.linalg.norm(query_vec)  # Normalize
 
         # Compute similarities
         results = []
         for key, item in self.embeddings_cache.items():
             vec = item['vector']
+
+            # Skip malformed vectors (empty or wrong shape)
+            if vec.shape != (384,):
+                continue
+
             vec = vec / np.linalg.norm(vec)  # Normalize
 
             # Cosine similarity
@@ -149,6 +155,11 @@ class SmartConnectionsDatabase:
             return []
 
         target_vec = self.embeddings_cache[target_key]['vector']
+
+        # Skip if target vector is malformed
+        if target_vec.shape != (384,):
+            return []
+
         target_vec = target_vec / np.linalg.norm(target_vec)
 
         # Find similar
@@ -162,6 +173,11 @@ class SmartConnectionsDatabase:
                 continue
 
             vec = item['vector']
+
+            # Skip malformed vectors
+            if vec.shape != (384,):
+                continue
+
             vec = vec / np.linalg.norm(vec)
 
             similarity = float(np.dot(target_vec, vec))
@@ -192,6 +208,7 @@ class SmartConnectionsDatabase:
         self.load_embeddings()
 
         query_vec = self.model.encode(query)
+        query_vec = np.atleast_1d(query_vec.squeeze())  # Ensure 1D array
         query_vec = query_vec / np.linalg.norm(query_vec)
 
         results = []
@@ -201,6 +218,11 @@ class SmartConnectionsDatabase:
                 continue
 
             vec = item['vector']
+
+            # Skip malformed vectors
+            if vec.shape != (384,):
+                continue
+
             vec = vec / np.linalg.norm(vec)
 
             similarity = float(np.dot(query_vec, vec))
